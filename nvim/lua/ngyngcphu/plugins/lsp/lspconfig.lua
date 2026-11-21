@@ -262,8 +262,6 @@ return {
 			},
 		})
 
-		-- Dart is handled by flutter-tools.nvim, which starts its own dartls client.
-
 		-- servers not installed through Mason (clangd and sourcekit-lsp come with Xcode, buf with Homebrew)
 		vim.lsp.enable({ "clangd", "sourcekit", "buf_ls" })
 	end,

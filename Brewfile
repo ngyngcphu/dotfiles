@@ -1,4 +1,4 @@
-# System dependencies for this Neovim config — installed by install.sh (`brew bundle`).
+# System dependencies for these dotfiles (Neovim + tmux) — installed by install.sh (`brew bundle`).
 tap "hashicorp/tap"
 tap "bufbuild/buf"
 
@@ -9,6 +9,7 @@ brew "tree-sitter-cli" # compiles treesitter parsers
 brew "ripgrep"         # telescope live_grep, spectre
 brew "fd"              # telescope, venv-selector
 brew "lazygit"         # <leader>lg
+brew "tmux"
 
 # Runtimes Mason uses to install language servers, formatters and linters
 brew "node"   # npm packages: ts_ls, pyright, prettier, eslint_d, ...

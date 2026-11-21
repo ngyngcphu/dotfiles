@@ -20,7 +20,6 @@ return {
 				liquid = { "prettier" },
 				lua = { "stylua" },
 				python = { "isort", "black" },
-				dart = { "dart_format" },
 				go = { "goimports", "gofumpt" },
 				terraform = { "terraform_fmt" },
 				["terraform-vars"] = { "terraform_fmt" },

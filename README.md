@@ -1,44 +1,57 @@
-# nvim-config
+# dotfiles
 
-My Neovim setup (lazy.nvim, native LSP, treesitter, Mason) for macOS.
+My macOS setup as code: Neovim (lazy.nvim, native LSP, treesitter, Mason) and tmux.
 
 ## Install on a new Mac
 
 ```sh
-git clone git@github.com:ngyngcphu/nvim-config.git ~/.config/nvim
-~/.config/nvim/install.sh
+git clone git@github.com:ngyngcphu/dotfiles.git ~/dotfiles
+~/dotfiles/install.sh
 ```
 
 > Fresh machine without SSH keys yet? Clone over HTTPS instead:
-> `git clone https://github.com/ngyngcphu/nvim-config.git ~/.config/nvim`
+> `git clone https://github.com/ngyngcphu/dotfiles.git ~/dotfiles`
 
 `install.sh` provisions everything and is safe to re-run:
 
 1. Xcode Command Line Tools (if missing, it opens the installer: finish it and run the script again)
-2. Homebrew, then every package in the [`Brewfile`](Brewfile): Neovim, ripgrep, fd, lazygit, tree-sitter CLI,
-   Node/Go/Python, terraform, buf, jdtls, ImageMagick, and the Meslo Nerd Font
-3. All plugins at the exact versions in `lazy-lock.json`
-4. All treesitter parsers, language servers, formatters and linters (Mason)
+2. Homebrew, then every package in the [`Brewfile`](Brewfile): Neovim, tmux, ripgrep, fd, lazygit,
+   tree-sitter CLI, Node/Go/Python, terraform, buf, jdtls, ImageMagick, and the Meslo Nerd Font
+3. Symlinks into this repo (anything already there is backed up as `*.bak.<timestamp>`)
+4. tmux plugins via tpm
+5. Neovim plugins at the exact versions in `nvim/lazy-lock.json`, plus all treesitter parsers,
+   language servers, formatters and linters (Mason)
 
 The first run takes about 25 minutes, mostly cloning plugins, compiling treesitter parsers and building Go tools.
 
-After it finishes, set your terminal font to **MesloLGS Nerd Font Mono** so icons render, then run `nvim`.
+After it finishes, set your terminal font to **MesloLGS Nerd Font Mono** so icons render.
+
+## Layout
+
+| Repo path | Linked to |
+| --- | --- |
+| `nvim/` | `~/.config/nvim` |
+| `tmux/tmux.conf` | `~/.config/tmux/tmux.conf` |
+
+Edit files in `~/dotfiles` (or through the links, same thing), then commit and push.
+tmux plugins live in `~/.config/tmux/plugins` and Neovim plugins in `~/.local/share/nvim`, outside the repo.
 
 ## Updating
 
 | What | How |
 | --- | --- |
-| Plugins | `:Lazy update`, then commit `lazy-lock.json` |
+| Neovim plugins | `:Lazy update`, then commit `nvim/lazy-lock.json` |
 | Language servers and tools | `:MasonToolsUpdate` |
 | Treesitter parsers | `:TSUpdate` |
-| System packages | `brew bundle --file=~/.config/nvim/Brewfile` |
+| tmux plugins | `prefix + U` (tpm) |
+| tmux config | edit `tmux/tmux.conf`, then `prefix + r` to reload |
+| System packages | `brew bundle --file=~/dotfiles/Brewfile` |
 
-To add a language: put its parser in `lua/ngyngcphu/plugins/treesitter.lua`, its Mason packages in
-`lua/ngyngcphu/plugins/lsp/mason.lua` and its formatter in `lua/ngyngcphu/plugins/formatting.lua`.
+The tmux prefix is `Ctrl-a`.
+
+To add a language to Neovim: put its parser in `nvim/lua/ngyngcphu/plugins/treesitter.lua`, its Mason packages in
+`nvim/lua/ngyngcphu/plugins/lsp/mason.lua` and its formatter in `nvim/lua/ngyngcphu/plugins/formatting.lua`.
 
 ## Notes
 
 - Requires Neovim 0.12+ (installed by the Brewfile).
-- Flutter support (flutter-tools.nvim) only loads when `flutter` is on your `PATH`; install the Flutter SDK
-  separately if you need it.
-- tmux config is not part of this repo; the vim-tmux-navigator plugin expects the matching tmux plugin.

@@ -1,12 +1,30 @@
 #!/usr/bin/env bash
-# One-command setup for this Neovim config on macOS. Safe to re-run.
-#   git clone git@github.com:ngyngcphu/nvim-config.git ~/.config/nvim && ~/.config/nvim/install.sh
+# One-command setup for these dotfiles (Neovim + tmux) on macOS. Safe to re-run.
+#   git clone git@github.com:ngyngcphu/dotfiles.git ~/dotfiles && ~/dotfiles/install.sh
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 step() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
+
+# link <source in repo> <target>: symlink target -> source, backing up anything already there
+link() {
+	local src="$1" dst="$2"
+	if [[ -L "$dst" && "$(readlink "$dst")" == "$src" ]]; then
+		echo "ok      $dst"
+		return
+	fi
+	if [[ -e "$dst" || -L "$dst" ]]; then
+		local backup
+		backup="$dst.bak.$(date +%Y%m%d%H%M%S)"
+		mv "$dst" "$backup"
+		echo "backup  $dst -> $backup"
+	fi
+	mkdir -p "$(dirname "$dst")"
+	ln -s "$src" "$dst"
+	echo "link    $dst -> $src"
+}
 
 [[ "$(uname -s)" == Darwin ]] || { echo "This script only supports macOS." >&2; exit 1; }
 
@@ -28,20 +46,25 @@ else
 fi
 
 step "System packages (Brewfile)"
-brew bundle --file="$REPO_DIR/Brewfile"
+brew bundle --file="$DOTFILES/Brewfile"
 
-if [[ "$REPO_DIR" != "$TARGET" ]]; then
-	step "Linking $TARGET -> $REPO_DIR"
-	if [[ -e "$TARGET" || -L "$TARGET" ]]; then
-		backup="$TARGET.bak.$(date +%Y%m%d%H%M%S)"
-		mv "$TARGET" "$backup"
-		echo "Existing config moved to $backup"
-	fi
-	mkdir -p "$(dirname "$TARGET")"
-	ln -s "$REPO_DIR" "$TARGET"
+step "Config links"
+link "$DOTFILES/nvim" "$CONFIG/nvim"
+link "$DOTFILES/tmux/tmux.conf" "$CONFIG/tmux/tmux.conf"
+# tmux reads ~/.tmux.conf before ~/.config/tmux/tmux.conf, so move an old one out of the way
+if [[ -e "$HOME/.tmux.conf" || -L "$HOME/.tmux.conf" ]]; then
+	mv "$HOME/.tmux.conf" "$HOME/.tmux.conf.bak.$(date +%Y%m%d%H%M%S)"
+	echo "backup  ~/.tmux.conf (it would override the linked config)"
 fi
 
-step "Plugins (lazy-lock.json), treesitter parsers, language servers and tools — this takes a while"
+step "tmux plugins (tpm)"
+TPM="$CONFIG/tmux/plugins/tpm"
+[[ -d "$TPM" ]] || git clone --depth 1 https://github.com/tmux-plugins/tpm "$TPM"
+"$TPM/bin/install_plugins"
+# reload a running tmux server so it picks up the config and plugins
+if tmux info >/dev/null 2>&1; then tmux source-file "$CONFIG/tmux/tmux.conf"; fi
+
+step "Neovim: plugins (lazy-lock.json), treesitter parsers, language servers and tools — this takes a while"
 # NVIM_BOOTSTRAP=1 makes the config install parsers and Mason packages synchronously.
 # The second pass only retries what failed (e.g. a flaky download) and takes seconds otherwise.
 for _ in 1 2; do
@@ -54,4 +77,4 @@ step "Terminal"
 defaults write com.googlecode.iterm2 NoSyncTurnOffMouseReportingOnHostChange -bool false
 echo "Set your terminal font to \"MesloLGS Nerd Font Mono\" so icons render."
 
-step "Done — run nvim"
+step "Done — open a new terminal, run tmux and nvim"
