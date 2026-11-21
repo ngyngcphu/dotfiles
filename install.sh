@@ -71,10 +71,8 @@ for _ in 1 2; do
 	NVIM_BOOTSTRAP=1 nvim --headless "+Lazy! restore" +qa
 done
 
-step "Terminal"
-# iTerm2: never drop mouse reporting when the reported host changes; otherwise the mouse wheel
-# can start scrolling iTerm2's own history instead of reaching tmux/Neovim.
-defaults write com.googlecode.iterm2 NoSyncTurnOffMouseReportingOnHostChange -bool false
-echo "Set your terminal font to \"MesloLGS Nerd Font Mono\" so icons render."
+step "iTerm2: profile (Dynamic Profile) and app settings"
+link "$DOTFILES/iterm2/profile.json" "$HOME/Library/Application Support/iTerm2/DynamicProfiles/dotfiles.json"
+bash "$DOTFILES/iterm2/settings.sh"
 
-step "Done — open a new terminal, run tmux and nvim"
+step "Done — open iTerm2, run tmux and nvim"

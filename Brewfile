@@ -1,4 +1,4 @@
-# System dependencies for these dotfiles (Neovim + tmux) — installed by install.sh (`brew bundle`).
+# System dependencies for these dotfiles (Neovim, tmux, iTerm2) — installed by install.sh (`brew bundle`).
 tap "hashicorp/tap"
 tap "bufbuild/buf"
 
@@ -28,5 +28,7 @@ brew "imagemagick" # image.nvim
 brew "ghostscript" # pdfreader.nvim
 brew "poppler"     # pdfreader.nvim
 
-# Font with the icons used by nvim-tree, lualine, bufferline, ...
+# Terminal (skipped if iTerm2 was installed by hand) and the font its profile uses,
+# which also provides the icons in nvim-tree, lualine, bufferline, ...
+cask "iterm2" unless File.exist?("/Applications/iTerm.app")
 cask "font-meslo-lg-nerd-font"
