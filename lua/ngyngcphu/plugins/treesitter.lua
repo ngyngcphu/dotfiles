@@ -30,6 +30,8 @@ local parsers = {
 	"java",
 	"python",
 	"proto",
+	"hcl",
+	"terraform", -- also used for terraform-vars (*.tfvars)
 }
 
 return {
@@ -41,7 +43,10 @@ return {
 		config = function()
 			local ts = require("nvim-treesitter")
 			ts.setup()
-			ts.install(parsers)
+			local install = ts.install(parsers) -- async; a no-op for parsers already installed
+			if vim.env.NVIM_BOOTSTRAP then
+				install:wait(30 * 60 * 1000) -- install.sh: finish compiling before nvim exits
+			end
 
 			vim.api.nvim_create_autocmd("FileType", {
 				group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),

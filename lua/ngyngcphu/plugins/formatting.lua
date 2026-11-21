@@ -21,7 +21,10 @@ return {
 				lua = { "stylua" },
 				python = { "isort", "black" },
 				dart = { "dart_format" },
-				go = { "goimports", "gofumpt" }, -- organize imports, then gofumpt (stricter gofmt)
+				go = { "goimports", "gofumpt" },
+				terraform = { "terraform_fmt" },
+				["terraform-vars"] = { "terraform_fmt" },
+				hcl = { "hcl" }, -- hclfmt -- organize imports, then gofumpt (stricter gofmt)
 			},
 			format_on_save = {
 				lsp_format = "fallback",
