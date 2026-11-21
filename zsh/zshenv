@@ -1,0 +1,2 @@
+# ~/.zshenv (linked from ~/dotfiles/zsh/zshenv): every zsh, including scripts. Rust toolchain (rustup).
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"

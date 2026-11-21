@@ -1,0 +1,4 @@
+# ~/.gitconfig (linked from ~/dotfiles/git/gitconfig).
+# Your name and email live in ~/.gitconfig.local (not in the repo); install.sh asks for them.
+[include]
+	path = ~/.gitconfig.local
