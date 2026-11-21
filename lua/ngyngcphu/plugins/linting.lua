@@ -18,18 +18,25 @@ return {
 			proto = { "protolint" },
 		}
 
-		local eslint = lint.linters.eslint_d
-
-		eslint.args = {
-			"--no-warn-ignored", -- <-- this is the key argument
-			"--format",
-			"json",
-			"--stdin",
-			"--stdin-filename",
-			function()
-				return vim.api.nvim_buf_get_name(0)
-			end,
+		-- eslint_d uses the project's own eslint when installed, otherwise its bundled one (eslint 10,
+		-- flat config only). `--no-warn-ignored` silences "file ignored" warnings, but only exists
+		-- with flat config: legacy .eslintrc projects reject it, so add it only for flat-config projects.
+		local eslint_d = lint.linters.eslint_d
+		local flat_configs = {
+			"eslint.config.js",
+			"eslint.config.mjs",
+			"eslint.config.cjs",
+			"eslint.config.ts",
+			"eslint.config.mts",
+			"eslint.config.cts",
 		}
+		lint.linters.eslint_d = function()
+			local args = { "--format", "json", "--stdin", "--stdin-filename", vim.api.nvim_buf_get_name(0) }
+			if vim.fs.root(0, flat_configs) then
+				table.insert(args, 1, "--no-warn-ignored")
+			end
+			return vim.tbl_extend("force", eslint_d, { args = args })
+		end
 
 		local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
 

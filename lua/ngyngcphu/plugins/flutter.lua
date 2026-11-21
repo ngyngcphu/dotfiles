@@ -2,9 +2,12 @@ return {
 	{
 		"akinsho/flutter-tools.nvim",
 		lazy = false,
+		-- only load when the Flutter SDK is installed: without it flutter-tools errors on every .dart buffer
+		cond = function()
+			return vim.fn.executable("flutter") == 1
+		end,
 		dependencies = {
 			"nvim-lua/plenary.nvim",
-			"stevearc/dressing.nvim",
 		},
 		config = function()
 			require("flutter-tools").setup({
@@ -48,14 +51,6 @@ return {
 					auto_open = false,
 				},
 				lsp = {
-					color = {
-						enabled = false,
-						background = false,
-						background_color = nil,
-						foreground = false,
-						virtual_text = true,
-						virtual_text_str = "■",
-					},
 					on_attach = function(_, _) end,
 					capabilities = require("cmp_nvim_lsp").default_capabilities(),
 					settings = {

@@ -31,6 +31,10 @@ opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or 
 -- clipboard
 opt.clipboard:append("unnamedplus") -- use system clipboard as default register
 
+-- mouse: keep it in every mode (default "nvi" releases it at the command line and at
+-- "Press ENTER" prompts, and tmux then turns the wheel into copy-mode over the shell history)
+opt.mouse = "a"
+
 -- split windows
 opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom

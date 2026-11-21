@@ -65,18 +65,10 @@ return {
 				_, _, _ = code, signal, output
 			end,
 		})
-
-		-- Run gofmt + goimports on save
-		local format_sync_grp = vim.api.nvim_create_augroup("goimports", {})
-		vim.api.nvim_create_autocmd("BufWritePre", {
-			pattern = "*.go",
-			callback = function()
-				require("go.format").goimports()
-			end,
-			group = format_sync_grp,
-		})
+		-- Go files are formatted on save by conform.nvim (goimports + gofumpt, see formatting.lua)
 	end,
 	event = { "CmdlineEnter" },
 	ft = { "go", "gomod" },
-	build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+	-- No build step: the Go tools come from Mason (mason.lua) and go.nvim installs anything else it
+	-- needs on first use. Run :GoInstallBinaries / :GoUpdateBinaries to install or update them all.
 }

@@ -1,44 +1,16 @@
+-- Servers are configured with Neovim's native `vim.lsp.config()` (nvim-lspconfig only ships the
+-- default configs in its `lsp/` directory). Servers installed through Mason are enabled
+-- automatically by mason-lspconfig (see mason.lua); the others are enabled at the bottom.
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"hrsh7th/cmp-nvim-lsp",
-		"mfussenegger/nvim-jdtls",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
-		{ "folke/neodev.nvim", opts = {} },
+		{ "folke/lazydev.nvim", ft = "lua", opts = {} }, -- replaces the archived neodev.nvim
 	},
 	config = function()
-		-- import lspconfig plugin
-		local lspconfig = require("lspconfig")
-		local util = require("lspconfig/util")
-
-		local configs = require("lspconfig.configs")
-		if not configs.protols then
-			configs.protols = {
-				default_config = {
-					cmd = { "protols" },
-					filetypes = { "proto" },
-					root_dir = function(fname)
-						return util.root_pattern(".git")(fname) or vim.fn.getcwd()
-					end,
-					single_file_support = true,
-				},
-			}
-		end
-		-- import mason_lspconfig plugin
-		local mason_lspconfig = require("mason-lspconfig")
-
-		-- import cmp-nvim-lsp plugin
-		local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
-		-- get mason registry path
-		local mason_registry = require("mason-registry")
-
 		local keymap = vim.keymap -- for conciseness
-
-		-- Set up the path to the Vue TypeScript plugin
-		local vue_language_server_path = mason_registry.get_package("vue-language-server"):get_install_path()
-			.. "/node_modules/@vue/language-server"
 
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -77,12 +49,12 @@ return {
 
 				opts.desc = "Go to previous diagnostic"
 				keymap.set("n", "[d", function()
-					vim.diagnostic.jump({ count = -1 })
+					vim.diagnostic.jump({ count = -1, float = true })
 				end, opts)
 
 				opts.desc = "Go to next diagnostic"
 				keymap.set("n", "]d", function()
-					vim.diagnostic.jump({ count = 1 })
+					vim.diagnostic.jump({ count = 1, float = true })
 				end, opts)
 
 				opts.desc = "Show documentation for what is under cursor"
@@ -90,225 +62,198 @@ return {
 
 				opts.desc = "Restart LSP"
 				keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+
+				-- clangd_extensions.nvim commands, only in buffers attached to clangd
+				local client = vim.lsp.get_client_by_id(ev.data.client_id)
+				if client and client.name == "clangd" then
+					vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+					opts.desc = "Clangd: view AST"
+					keymap.set("n", "<leader>ce", "<cmd>ClangdAST<CR>", opts)
+					opts.desc = "Clangd: view memory usage"
+					keymap.set("n", "<leader>cm", "<cmd>ClangdMemoryUsage<CR>", opts)
+					opts.desc = "Clangd: view symbol info"
+					keymap.set("n", "<leader>cs", "<cmd>ClangdSymbolInfo<CR>", opts)
+				end
 			end,
 		})
 
-		-- used to enable autocompletion (assign to every lsp server config)
-		local capabilities = cmp_nvim_lsp.default_capabilities()
-
-		-- Change the Diagnostic symbols in the sign column (gutter)
-		-- (not in youtube nvim video)
-		local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
-		for type, icon in pairs(signs) do
-			local hl = "DiagnosticSign" .. type
-			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
-		end
-
-		-- Keep diagnostic signs visible in insert mode
 		vim.diagnostic.config({
 			update_in_insert = true, -- keeps diagnostics updated in insert mode
+			-- Diagnostic symbols in the sign column (gutter). `sign_define` no longer affects diagnostics.
+			signs = {
+				text = {
+					[vim.diagnostic.severity.ERROR] = " ",
+					[vim.diagnostic.severity.WARN] = " ",
+					[vim.diagnostic.severity.HINT] = "󰠠 ",
+					[vim.diagnostic.severity.INFO] = " ",
+				},
+			},
 		})
 
-		mason_lspconfig.setup_handlers({
-			-- default handler for installed servers
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["svelte"] = function()
-				-- configure svelte server
-				lspconfig["svelte"].setup({
-					capabilities = capabilities,
-					on_attach = function(client, _)
-						vim.api.nvim_create_autocmd("BufWritePost", {
-							pattern = { "*.js", "*.ts" },
-							callback = function(ctx)
-								-- Here use ctx.match instead of ctx.file
-								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
-							end,
-						})
+		-- used to enable autocompletion (applies to every lsp server config)
+		vim.lsp.config("*", {
+			capabilities = require("cmp_nvim_lsp").default_capabilities(),
+		})
+
+		vim.lsp.config("svelte", {
+			on_attach = function(client, _)
+				vim.api.nvim_create_autocmd("BufWritePost", {
+					pattern = { "*.js", "*.ts" },
+					callback = function(ctx)
+						-- Here use ctx.match instead of ctx.file
+						client:notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
 					end,
-				})
-			end,
-			["graphql"] = function()
-				-- configure graphql language server
-				lspconfig["graphql"].setup({
-					capabilities = capabilities,
-					filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-				})
-			end,
-			["emmet_ls"] = function()
-				-- configure emmet language server
-				lspconfig["emmet_ls"].setup({
-					capabilities = capabilities,
-					filetypes = {
-						"html",
-						"typescriptreact",
-						"javascriptreact",
-						"css",
-						"sass",
-						"scss",
-						"less",
-						"svelte",
-					},
-				})
-			end,
-			["lua_ls"] = function()
-				-- configure lua server (with special settings)
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							-- make the language server recognize "vim" global
-							diagnostics = {
-								globals = { "vim" },
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
-						},
-					},
-				})
-			end,
-			["ts_ls"] = function()
-				lspconfig.ts_ls.setup({
-					capabilities = capabilities,
-					init_options = {
-						plugins = {
-							{
-								name = "@vue/typescript-plugin",
-								location = vue_language_server_path,
-								languages = { "vue" },
-							},
-						},
-					},
-					filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-				})
-			end,
-			["volar"] = function()
-				lspconfig.volar.setup({
-					capabilities = capabilities,
-					init_options = {
-						typescript = {
-							tsdk = "/opt/homebrew/lib/node_modules/typescript/lib",
-							-- Alternative location if installed as root:
-							-- tsdk = '/usr/local/lib/node_modules/typescript/lib'
-						},
-					},
-				})
-			end,
-			["clangd"] = function()
-				-- configure clangd for C/C++ language server
-				lspconfig.clangd.setup({
-					cmd = {
-						"clangd",
-						"--background-index",
-						"--clang-tidy",
-						"--header-insertion=iwyu",
-						"--completion-style=detailed",
-						"--function-arg-placeholders",
-						"--fallback-style=llvm",
-					},
-					capabilities = capabilities,
-					filetypes = { "c", "cpp", "objc", "objcpp" },
-					init_options = {
-						usePlaceholders = true,
-						completeUnimported = true,
-						clangdFileStatus = true,
-					},
-					root_dir = function(fname)
-						return util.root_pattern(
-							"Makefile",
-							"configure.ac",
-							"configure.in",
-							"config.h.in",
-							"meson.build",
-							"meson_options.txt",
-							"build.ninja"
-						)(fname) or util.root_pattern("compile_commands.json", "compile_flags.txt")(fname) or vim.fs.dirname(
-							vim.fs.find(".git", { path = fname, upward = true })[1]
-						)
-					end,
-					settings = {
-						clangd = {
-							compile_commands = { "build/compile_commands.json" },
-						},
-					},
-				})
-			end,
-			["rust_analyzer"] = function()
-				-- configure rust-analyzer for Rust language server
-				lspconfig.rust_analyzer.setup({
-					capabilities = capabilities,
-					on_attach = function(_, bufnr)
-						vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-					end,
-					settings = {
-						["rust-analyzer"] = {
-							imports = {
-								granularity = {
-									group = "module",
-								},
-								prefix = "self",
-							},
-							cargo = {
-								buildScripts = {
-									enable = true,
-								},
-							},
-							procMacro = {
-								enable = true,
-							},
-						},
-					},
-				})
-			end,
-			["gopls"] = function()
-				-- configure gopls language server
-				lspconfig.gopls.setup({
-					capabilities = capabilities,
-					cmd = { "gopls" },
-					filetypes = { "go", "gomod", "gowork", "gotmpl" },
-					root_dir = util.root_pattern("go.work", "go.mod", ".git"),
-					settings = {
-						gopls = {
-							completeUnimported = true,
-							usePlaceholders = true,
-							analyses = {
-								unusedparams = true,
-							},
-							staticcheck = true,
-							gofumpt = true,
-							codelenses = {
-								gc_details = false,
-								generate = true,
-								regenerate_cgo = true,
-								run_govulncheck = true,
-								test = true,
-								tidy = true,
-								upgrade_dependency = true,
-								vendor = true,
-							},
-							hints = {
-								assignVariableTypes = true,
-								compositeLiteralFields = true,
-								compositeLiteralTypes = true,
-								constantValues = true,
-								functionTypeParameters = true,
-								parameterNames = true,
-								rangeVariableTypes = true,
-							},
-						},
-					},
 				})
 			end,
 		})
 
-		lspconfig.protols.setup({
-			capabilities = capabilities,
-			filetypes = { "proto" },
-			root_dir = util.root_pattern(".git", "proto", "buf.yaml", "buf.work.yaml"),
+		vim.lsp.config("graphql", {
+			filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
+		})
+
+		vim.lsp.config("emmet_ls", {
+			filetypes = {
+				"html",
+				"typescriptreact",
+				"javascriptreact",
+				"css",
+				"sass",
+				"scss",
+				"less",
+				"svelte",
+			},
+		})
+
+		vim.lsp.config("lua_ls", {
+			settings = {
+				Lua = {
+					-- make the language server recognize "vim" global
+					diagnostics = {
+						globals = { "vim" },
+					},
+					completion = {
+						callSnippet = "Replace",
+					},
+				},
+			},
+		})
+
+		-- Vue support for ts_ls, only if vue-language-server is installed through Mason
+		-- (`:MasonInstall vue-language-server`; mason-lspconfig then also enables `vue_ls`).
+		local vue_language_server_path =
+			vim.fn.expand("$MASON/packages/vue-language-server/node_modules/@vue/language-server")
+		if vim.uv.fs_stat(vue_language_server_path) then
+			vim.lsp.config("ts_ls", {
+				init_options = {
+					plugins = {
+						{
+							name = "@vue/typescript-plugin",
+							location = vue_language_server_path,
+							languages = { "vue" },
+						},
+					},
+				},
+				filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+			})
+		end
+
+		vim.lsp.config("clangd", {
+			cmd = {
+				"clangd",
+				"--background-index",
+				"--clang-tidy",
+				"--header-insertion=iwyu",
+				"--completion-style=detailed",
+				"--function-arg-placeholders",
+				"--fallback-style=llvm",
+			},
+			filetypes = { "c", "cpp", "objc", "objcpp" },
+			init_options = {
+				usePlaceholders = true,
+				completeUnimported = true,
+				clangdFileStatus = true,
+			},
+			-- nested lists have equal priority; earlier entries win over later ones
+			root_markers = {
+				{
+					"Makefile",
+					"configure.ac",
+					"configure.in",
+					"config.h.in",
+					"meson.build",
+					"meson_options.txt",
+					"build.ninja",
+				},
+				{ "compile_commands.json", "compile_flags.txt" },
+				".git",
+			},
+		})
+
+		vim.lsp.config("rust_analyzer", {
+			on_attach = function(_, bufnr)
+				vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+			end,
+			settings = {
+				["rust-analyzer"] = {
+					imports = {
+						granularity = {
+							group = "module",
+						},
+						prefix = "self",
+					},
+					cargo = {
+						buildScripts = {
+							enable = true,
+						},
+					},
+					procMacro = {
+						enable = true,
+					},
+				},
+			},
+		})
+
+		-- go.nvim (lsp_cfg = true) merges its own gopls config on top of this one
+		vim.lsp.config("gopls", {
+			settings = {
+				gopls = {
+					completeUnimported = true,
+					usePlaceholders = true,
+					analyses = {
+						unusedparams = true,
+					},
+					staticcheck = true,
+					gofumpt = true,
+					codelenses = {
+						gc_details = false,
+						generate = true,
+						regenerate_cgo = true,
+						run_govulncheck = true,
+						test = true,
+						tidy = true,
+						upgrade_dependency = true,
+						vendor = true,
+					},
+					hints = {
+						assignVariableTypes = true,
+						compositeLiteralFields = true,
+						compositeLiteralTypes = true,
+						constantValues = true,
+						functionTypeParameters = true,
+						parameterNames = true,
+						rangeVariableTypes = true,
+					},
+				},
+			},
+		})
+
+		-- sourcekit-lsp for Swift (not managed by Mason, comes with Xcode); C/C++/ObjC stay on clangd
+		vim.lsp.config("sourcekit", {
+			filetypes = { "swift" },
+		})
+
+		vim.lsp.config("protols", {
+			root_markers = { ".git", "proto", "buf.yaml", "buf.work.yaml" },
 			settings = {
 				protols = {
 					debug = false,
@@ -317,36 +262,9 @@ return {
 			},
 		})
 
-		lspconfig.buf_ls.setup({
-			cmd = { "buf", "beta", "lsp" },
-			filetypes = { "proto" },
-			root_dir = util.root_pattern("buf.yaml", "buf.work.yaml", ".git"),
-		})
+		-- Dart is handled by flutter-tools.nvim, which starts its own dartls client.
 
-		lspconfig.dartls.setup({
-			capabilities = capabilities,
-			cmd = { "dart", "language-server", "--protocol=lsp" },
-			filetypes = { "dart" },
-			init_options = {
-				onlyAnalyzeProjectsWithOpenFiles = false,
-				suggestFromUnimportedLibraries = true,
-				closingLabels = true,
-				outline = true,
-				flutterOutline = true,
-			},
-			settings = {
-				dart = {
-					analysisExcludedFolders = {
-						vim.fn.expand("$HOME/AppData/Local/Pub/Cache"),
-						vim.fn.expand("$HOME/.pub-cache"),
-						vim.fn.expand("/opt/homebrew"),
-						vim.fn.expand("$HOME/tools/flutter"),
-					},
-					updateImportsOnRename = true,
-					completeFunctionCalls = true,
-					showTodos = true,
-				},
-			},
-		})
+		-- servers not installed through Mason (clangd and sourcekit-lsp come with Xcode, buf with Homebrew)
+		vim.lsp.enable({ "clangd", "sourcekit", "buf_ls" })
 	end,
 }

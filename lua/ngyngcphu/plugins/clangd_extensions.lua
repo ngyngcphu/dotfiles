@@ -1,41 +1,24 @@
+-- clangd itself is configured in lsp/lspconfig.lua (inlay hints are native since Neovim 0.10);
+-- this plugin only adds the :ClangdAST / :ClangdMemoryUsage / :ClangdSymbolInfo views.
 return {
 	"p00f/clangd_extensions.nvim",
-		config = function()
-		require("clangd_extensions").setup({
-			server = {
-				cmd = { "clangd", "--background-index", "--clang-tidy" },
-				on_attach = function(client, bufnr)
-					-- Your existing LSP keybindings and settings
-				end,
-				capabilities = require("cmp_nvim_lsp").default_capabilities(),
+	ft = { "c", "cpp", "objc", "objcpp" },
+	opts = {
+		ast = {
+			role_icons = {
+				type = "🄣",
+				declaration = "🄓",
+				expression = "🄔",
+				statement = ";",
+				specifier = "🄢",
+				["template argument"] = "🆃",
 			},
-			extensions = {
-				-- Defaults; customize as needed
-				autoSetHints = true,
-				inlay_hints = {
-					show_parameter_hints = true,
-					parameter_hints_prefix = "<- ",
-					other_hints_prefix = "=> ",
-				},
-				ast = {
-					-- Command for opening AST view (default is "ClangdAst")
-					role_icons = {
-						type = "🄣",
-						declaration = "🄓",
-						expression = "🄔",
-						statement = ";",
-						specifier = "🄢",
-						qualifier = "🄠",
-						["/"] = "/",
-					},
-				},
-				memory_usage = {
-					border = "rounded",
-				},
-				symbol_info = {
-					border = "rounded",
-				},
-			},
-		})
-	end,
+		},
+		memory_usage = {
+			border = "rounded",
+		},
+		symbol_info = {
+			border = "rounded",
+		},
+	},
 }

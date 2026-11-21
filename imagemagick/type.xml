@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Font map for ImageMagick, used by image.nvim (see lua/ngyngcphu/plugins/image.lua).
+     Homebrew's ImageMagick has no fonts registered, so rendering any SVG with text fails
+     with "unable to read font `'". These are macOS system fonts. -->
+<typemap>
+  <type name="Arial" fullname="Arial" family="Arial" style="Normal" stretch="Normal" weight="400" glyphs="/System/Library/Fonts/Supplemental/Arial.ttf"/>
+  <type name="Arial-Bold" fullname="Arial Bold" family="Arial" style="Normal" stretch="Normal" weight="700" glyphs="/System/Library/Fonts/Supplemental/Arial Bold.ttf"/>
+  <type name="Helvetica" fullname="Helvetica" family="Helvetica" style="Normal" stretch="Normal" weight="400" glyphs="/System/Library/Fonts/Supplemental/Arial.ttf"/>
+  <type name="Courier" fullname="Courier New" family="Courier" style="Normal" stretch="Normal" weight="400" glyphs="/System/Library/Fonts/Supplemental/Courier New.ttf"/>
+</typemap>

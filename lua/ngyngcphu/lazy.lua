@@ -1,5 +1,5 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -19,6 +19,9 @@ require("lazy").setup({ { import = "ngyngcphu.plugins" }, { import = "ngyngcphu.
 	change_detection = {
 		notify = false,
 	},
+	rocks = {
+		enabled = false, -- no plugin here needs luarocks (image.nvim uses the magick CLI)
+	},
 })
 
 vim.o.autoread = true
@@ -27,16 +30,3 @@ vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "CursorHoldI", "FocusGai
 	pattern = { "*" },
 })
 
-vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("ClangdExtensions", {}),
-	callback = function(args)
-		local bufnr = args.buf
-		local opts = { buffer = bufnr, silent = true, noremap = true }
-		local keymap = vim.keymap.set
-
-		-- Add bindings for extensions
-		keymap("n", "<leader>ce", "<cmd>ClangdAst<CR>", opts) -- View AST
-		keymap("n", "<leader>cm", "<cmd>ClangdMemoryUsage<CR>", opts) -- View memory usage
-		keymap("n", "<leader>cs", "<cmd>ClangdSymbolInfo<CR>", opts) -- View symbol info
-	end,
-})

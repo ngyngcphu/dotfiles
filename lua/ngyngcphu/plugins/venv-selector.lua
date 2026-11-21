@@ -8,8 +8,7 @@ return {
 	},
 	keys = {
 		-- Keymap to open VenvSelector to pick a venv.
-		{ "<leader>vs", "<cmd>VenvSelect<cr>" },
-		-- Keymap to retrieve the venv from a cache (the one previously used for the same project directory).
-		{ "<leader>vc", "<cmd>VenvSelectCached<cr>" },
+		{ "<leader>vs", "<cmd>VenvSelect<cr>", desc = "Select Python venv" },
+		-- the venv previously used for a project directory is now re-activated automatically
 	},
 }
