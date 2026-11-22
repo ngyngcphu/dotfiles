@@ -59,5 +59,8 @@ return {
         }),
       },
     })
+
+    -- no completion in big files (snacks.bigfile): the buffer source would index the whole file
+    cmp.setup.filetype("bigfile", { enabled = false })
   end,
 }

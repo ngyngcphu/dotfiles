@@ -1,10 +1,13 @@
 -- snacks.nvim replaces the archived dressing.nvim for nicer vim.ui.input / vim.ui.select prompts
 -- (LSP rename, code actions, venv picker, ...). It is also used by pdfreader.nvim for images.
+-- bigfile: files over 1.5 MB, or with very long lines (minified JSON/JS), open with filetype `bigfile`,
+-- so treesitter, LSP, linting and completion skip them; only Vim's plain syntax highlighting stays on.
 return {
 	"folke/snacks.nvim",
 	priority = 1000,
 	lazy = false, -- snacks must not be lazy-loaded
 	opts = {
+		bigfile = { enabled = true },
 		input = { enabled = true }, -- vim.ui.input
 		picker = {
 			enabled = true,
