@@ -79,13 +79,17 @@ return {
 
 		vim.diagnostic.config({
 			update_in_insert = true, -- keeps diagnostics updated in insert mode
+			severity_sort = true, -- errors win over warnings in the sign column and the message list
+			-- message at the end of the line (off by default since Neovim 0.11)
+			virtual_text = { spacing = 2, prefix = "\u{25cf}" }, -- ●
 			-- Diagnostic symbols in the sign column (gutter). `sign_define` no longer affects diagnostics.
+			-- Nerd Font icons as escapes: the raw glyphs are private-use characters that get lost in copy/paste.
 			signs = {
 				text = {
-					[vim.diagnostic.severity.ERROR] = " ",
-					[vim.diagnostic.severity.WARN] = " ",
-					[vim.diagnostic.severity.HINT] = "󰠠 ",
-					[vim.diagnostic.severity.INFO] = " ",
+					[vim.diagnostic.severity.ERROR] = "\u{f057} ", -- nf-fa-times_circle
+					[vim.diagnostic.severity.WARN] = "\u{f071} ", -- nf-fa-warning
+					[vim.diagnostic.severity.HINT] = "\u{f0820} ", -- nf-md-lightbulb_outline
+					[vim.diagnostic.severity.INFO] = "\u{f05a} ", -- nf-fa-info_circle
 				},
 			},
 		})
