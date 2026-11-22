@@ -46,6 +46,7 @@ brew "argocd"
 
 # Infrastructure, APIs and databases
 brew "hashicorp/tap/terraform", trusted: true
+brew "awscli" # aws
 brew "bufbuild/buf/buf", trusted: true
 brew "protobuf" # protoc
 brew "grpcurl"

@@ -17,7 +17,7 @@ git clone git@github.com:ngyngcphu/dotfiles.git ~/dotfiles
 
 1. Xcode Command Line Tools (if missing, it opens the installer: finish it and run the script again)
 2. Homebrew, then everything in the [`Brewfile`](Brewfile): git/gh, Neovim, tmux, Go, Node.js, pnpm, yarn, Python,
-   Java + Maven, Colima + Docker CLI (buildx, compose), kubectl, kubectx, Helm, Argo CD, Terraform, buf, protoc,
+   Java + Maven, Colima + Docker CLI (buildx, compose), kubectl, kubectx, Helm, Argo CD, Terraform, AWS CLI, buf, protoc,
    grpcurl, k6, atlas, dbmate, psql, mysql, redis, iTerm2, the Meslo Nerd Font, and Go tools
    (`mc`, `protoc-gen-go`, `protoc-gen-go-grpc`, `staticcheck`)
 3. Tools with their own installers: Rust (rustup), uv, bun and Claude Code
@@ -53,7 +53,7 @@ This repo is public, so private settings stay out of it, in files `install.sh` n
 | --- | --- |
 | `~/.zshrc.local` | work settings (`GOPRIVATE`, Teleport kubectl wrappers), sourced at the end of `~/.zshrc` |
 | `~/.gitconfig.local` | git name and email (`install.sh` asks for them) |
-| `~/.ssh`, `~/.kube`, `~/.npmrc`, `~/.docker/config.json` | keys, kubeconfigs, registry tokens |
+| `~/.ssh`, `~/.kube`, `~/.aws`, `~/.npmrc`, `~/.docker/config.json` | keys, kubeconfigs, registry tokens |
 
 Teleport (`tsh`) is installed separately, at the version your cluster runs.
 
@@ -69,6 +69,7 @@ from oh-my-zsh plugins listed in `zsh/zshrc`. Some of the aliases:
 | kubectl | `k` (uses `~/.kube/config`), `kgp` get pods, `kaf` apply -f, `kl` logs, `keti` exec -it |
 | docker / compose | `dps`, `dpsa`, `dils` images, `dxcit` exec -it, `dco`, `dcup`, `dcdn` |
 | terraform | `tf`, `tfi` init, `tfp` plan, `tfa` apply, `tfv` validate |
+| aws | `asp <profile>` switch profile, `asr <region>` switch region, `agp` / `agr` show current |
 | git | `gst` status, `gco` checkout, `gp` push, `gl` pull, `glog` |
 | go / uv / mvn | `gob` build, `got` test, `gor` run · `uvr` run, `uva` add, `uvs` sync · `mvnci` clean install |
 | brew | `bubo` outdated, `bubu` update + upgrade |
